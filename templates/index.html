@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Chess GUI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            font-family: 'Arial', sans-serif;
+            color: #ecf0f1;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .panel {
+            background: rgba(52, 73, 94, 0.9);
+            border: 2px solid #34495e;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .history-panel {
+            width: 250px;
+        }
+
+        .board-panel {
+            flex: 0 0 auto;
+        }
+
+        .control-panel {
+            width: 300px;
+        }
+
+        .panel h2 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #3498db;
+            font-size: 18px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Chess Board Styles */
+        .chess-board {
+            width: 480px;
+            height: 480px;
+            border: 3px solid #8b4513;
+            border-radius: 5px;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+        }
+
+        .square {
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            font-weight: normal;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .square.light {
+            background-color: #f0d9b5;
+        }
+
+        .square.dark {
+            background-color: #b58863;
+        }
+
+        .square:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .square.selected {
+            background-color: #87ceeb !important;
+            border: 3px solid #4682b4;
+        }
+
+        .square.last-move {
+            background-color: #90ee90 !important;
+            border: 2px solid #32cd32;
+        }
+
+        /* Chess piece styling */
+        .white-piece {
+            color: #ffffff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8),
+                        -1px -1px 3px rgba(0, 0, 0, 0.8),
+                         1px -1px 3px rgba(0, 0, 0, 0.8),
+                        -1px 1px 3px rgba(0, 0, 0, 0.8);
+            filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.9));
+        }
+
+        .black-piece {
+            color: #000000;
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8),
+                        -1px -1px 3px rgba(255, 255, 255, 0.8),
+                         1px -1px 3px rgba(255, 255, 255, 0.8),
+                        -1px 1px 3px rgba(255, 255, 255, 0.8);
+            filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5));
+        }
+
+        /* Coordinates */
+        .coord-label {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+            color: #2c3e50;
+            z-index: 100;
+        }
+
+        .file-label {
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .rank-label {
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Move History */
+        .move-history {
+            background: rgba(236, 240, 241, 0.9);
+            color: #2c3e50;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .move-history div {
+            padding: 2px 5px;
+        }
+
+        .move-history div:nth-child(even) {
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Settings */
+        .setting {
+            margin: 10px 0;
+        }
+
+        .setting label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .setting input, .setting select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #bdc3c7;
+            border-radius: 3px;
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        /* Status */
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .status.ready {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status.thinking {
+            background: #f39c12;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status.error {
+            background: #e74c3c;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* File input styling */
+        .file-input {
+            display: none;
+        }
+
+        .file-label-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #2ecc71;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .file-label-btn:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        /* Game over modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: #34495e;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .panel {
+                width: 100%;
+                max-width: 480px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Move History Panel -->
+        <div class="panel history-panel">
+            <h2>📝 Move History</h2>
+            <div class="move-history" id="move-history"></div>
+            
+            <button class="btn btn-primary" onclick="saveGame()">💾 Save Game</button>
+            
+            <label for="load-file" class="file-label-btn">📂 Load Game</label>
+            <input type="file" id="load-file" class="file-input" accept=".txt,.pgn" onchange="loadGame(this)">
+        </div>
+
+        <!-- Chess Board Panel -->
+        <div class="panel board-panel">
+            <h2>♟️ Chess Board</h2>
+            <div class="chess-board" id="chess-board"></div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="panel control-panel">
+            <h2>🎮 Game Controls</h2>
+            
+            <div class="status" id="engine-status">Engines: Initializing...</div>
+            
+            <button class="btn btn-success" onclick="newGame()">🔄 New Game</button>
+            <button class="btn btn-warning" onclick="undoMove()">↶ Undo Move</button>
+            <button class="btn btn-purple" id="battle-btn" onclick="toggleEngineBattle()">▶ Start Engine Battle</button>
+            
+            <div class="setting">
+                <label>Game Mode:</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="gameMode" value="player_vs_engine" checked onchange="setGameMode(this.value)">
+                        Player vs Engine
+                    </label>
+                    <label>
+                        <input type="radio" name="gameMode" value="player_vs_player" onchange="setGameMode(this.value)">
+                        Player vs Player
+                    </label>
+                    <label>
+                        <input type="radio" name="gameMode" value="engine_vs_engine" onchange="setGameMode(this.value)">
+                        Engine vs Engine
+                    </label>
+                </div>
+            </div>
+            
+            <div class="setting">
+                <label for="time-limit">Engine Time Limit (seconds):</label>
+                <input type="number" id="time-limit" min="0.1" max="60" step="0.1" value="2.0" onchange="updateEngineSettings()">
+            </div>
+            
+            <div class="setting">
+                <label for="engine-level">Engine Strength (1-20):</label>
+                <input type="range" id="engine-level" min="1" max="20" value="20" onchange="updateEngineSettings(); document.getElementById('level-display').textContent = this.value">
+                <div style="text-align: center; margin-top: 5px;">Level: <span id="level-display">20</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 id="gameOverTitle">Game Over</h3>
+            <p id="gameOverMessage"></p>
+            <button class="btn btn-primary" onclick="closeModal(); newGame()">New Game</button>
+        </div>
+    </div>
+
+    <script>
+        let gameState = null;
+        let selectedSquare = null;
+
+        // Enhanced piece symbols mapping with better Unicode chess pieces
+        const pieceSymbols = {
+            'P': '♙',  // White Pawn
+            'N': '♘',  // White Knight  
+            'B': '♗',  // White Bishop
+            'R': '♖',  // White Rook
+            'Q': '♕',  // White Queen
+            'K': '♔',  // White King
+            'p': '♟',  // Black Pawn
+            'n': '♞',  // Black Knight
+            'b': '♝',  // Black Bishop
+            'r': '♜',  // Black Rook
+            'q': '♛',  // Black Queen
+            'k': '♚'   // Black King
+        };
+
+        // Initialize the game
+        window.onload = function() {
+            updateGameState();
+            setInterval(updateGameState, 1000); // Poll for updates every second
+        };
+
+        async function updateGameState() {
+            try {
+                const response = await fetch('/api/game_state');
+                if (response.ok) {
+                    gameState = await response.json();
+                    updateDisplay();
+                }
+            } catch (error) {
+                console.error('Error updating game state:', error);
+            }
+        }
+
+        function updateDisplay() {
+            if (!gameState) return;
+
+            drawBoard();
+            updateMoveHistory();
+            updateStatus();
+            updateButtons();
+
+            // Check for game over
+            if (gameState.game_over && !document.getElementById('gameOverModal').style.display.includes('block')) {
+                showGameOverModal();
+            }
+        }
+
+        function drawBoard() {
+            const board = document.getElementById('chess-board');
+            board.innerHTML = '';
+
+            // Create squares - board array is already in display order (rank 7 to 0)
+            for (let displayRank = 0; displayRank < 8; displayRank++) {
+                for (let file = 0; file < 8; file++) {
+                    const actualRank = 7 - displayRank; // Convert display rank to actual rank
+                    
+                    const square = document.createElement('div');
+                    square.className = 'square';
+                    square.style.left = `${file * 60}px`;
+                    square.style.top = `${displayRank * 60}px`;
+                    
+                    // Set square color
+                    if ((actualRank + file) % 2 === 0) {
+                        square.classList.add('light');
+                    } else {
+                        square.classList.add('dark');
+                    }
+
+                    // Highlight selected square
+                    if (gameState.selected_square && 
+                        gameState.selected_square[0] === file && 
+                        gameState.selected_square[1] === actualRank) {
+                        square.classList.add('selected');
+                    }
+
+                    // Highlight last move
+                    if (gameState.last_move && 
+                        ((gameState.last_move.from[0] === file && gameState.last_move.from[1] === actualRank) ||
+                         (gameState.last_move.to[0] === file && gameState.last_move.to[1] === actualRank))) {
+                        square.classList.add('last-move');
+                    }
+
+                    // Add piece if present
+                    const piece = gameState.board[displayRank][file];
+                    if (piece) {
+                        const symbol = pieceSymbols[piece.piece];
+                        square.textContent = symbol;
+                        square.classList.add(piece.color + '-piece');
+                    }
+
+                    // Add click handler
+                    square.onclick = () => onSquareClick(file, actualRank);
+                    
+                    board.appendChild(square);
+                }
+            }
+
+            // Add coordinate labels
+            for (let i = 0; i < 8; i++) {
+                // File labels (a-h)
+                const fileLabel = document.createElement('div');
+                fileLabel.className = 'coord-label file-label';
+                fileLabel.style.left = `${i * 60 + 30}px`;
+                fileLabel.style.bottom = '5px';
+                fileLabel.textContent = String.fromCharCode(97 + i); // a-h
+                board.appendChild(fileLabel);
+
+                // Rank labels (1-8)
+                const rankLabel = document.createElement('div');
+                rankLabel.className = 'coord-label rank-label';
+                rankLabel.style.left = '5px';
+                rankLabel.style.top = `${(7 - i) * 60 + 30}px`;
+                rankLabel.textContent = (i + 1).toString();
+                board.appendChild(rankLabel);
+            }
+        }
+
+        function updateMoveHistory() {
+            const historyDiv = document.getElementById('move-history');
+            historyDiv.innerHTML = '';
+            
+            gameState.move_history.forEach(move => {
+                const moveDiv = document.createElement('div');
+                moveDiv.textContent = move;
+                historyDiv.appendChild(moveDiv);
+            });
+            
+            // Scroll to bottom
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+        }
+
+        function updateStatus() {
+            const statusDiv = document.getElementById('engine-status');
+            
+            if (gameState.engine_thinking) {
+                statusDiv.textContent = `Engine (${gameState.turn}): Thinking...`;
+                statusDiv.className = 'status thinking';
+            } else if (gameState.game_over) {
+                statusDiv.textContent = 'Game Over';
+                statusDiv.className = 'status ready';
+            } else {
+                statusDiv.textContent = 'Engines: Ready';
+                statusDiv.className = 'status ready';
+            }
+        }
+
+        function updateButtons() {
+            const battleBtn = document.getElementById('battle-btn');
+            
+            if (gameState.game_mode === 'engine_vs_engine') {
+                battleBtn.disabled = false;
+                battleBtn.textContent = gameState.engine_battle_active ? '⏸ Pause Engine Battle' : '▶ Start Engine Battle';
+            } else {
+                battleBtn.disabled = true;
+                battleBtn.textContent = '▶ Start Engine Battle';
+            }
+        }
+
+        async function onSquareClick(file, rank) {
+            console.log(`Square clicked: ${file}, ${rank}`);
+            
+            if (gameState.engine_thinking || (gameState.game_mode === 'engine_vs_engine' && gameState.engine_battle_active)) {
+                return;
+            }
+
+            // If we have a selected square, try to make a move
+            if (gameState.selected_square) {
+                const from = gameState.selected_square;
+                const to = [file, rank];
+                
+                console.log(`Attempting move from [${from[0]}, ${from[1]}] to [${to[0]}, ${to[1]}]`);
+                
+                // Check if it's the same square (deselect)
+                if (from[0] === to[0] && from[1] === to[1]) {
+                    await selectSquare(null, null); // Deselect
+                    return;
+                }
+                
+                // Try to make the move
+                try {
+                    const response = await fetch('/api/move', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            from: from,
+                            to: to,
+                            promotion: 'q' // Auto-promote to queen for simplicity
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    console.log('Move result:', result);
+                    
+                    if (result.success) {
+                        gameState = result.game_state;
+                        updateDisplay();
+                        
+                        // If in player vs engine mode and it's now engine's turn
+                        if (gameState.game_mode === 'player_vs_engine' && 
+                            !gameState.game_over && 
+                            gameState.turn === 'black' &&
+                            gameState.engine_ready) {
+                            
+                            // Trigger engine move after a short delay
+                            setTimeout(async () => {
+                                const engineResponse = await fetch('/api/engine_move', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    }
+                                });
+                                
+                                const engineResult = await engineResponse.json();
+                                if (engineResult.success) {
+                                    // Poll for the updated state after engine move
+                                    setTimeout(updateGameState, 500);
+                                }
+                            }, 300);
+                        }
+                    } else {
+                        // Invalid move, try to select the clicked square instead
+                        await selectSquare(file, rank);
+                    }
+                } catch (error) {
+                    console.error('Move error:', error);
+                }
+            } else {
+                // Select the square
+                await selectSquare(file, rank);
+            }
+        }
+
+        async function selectSquare(file, rank) {
+            console.log(`Selecting square: ${file}, ${rank}`);
+            
+            try {
+                const response = await fetch('/api/select_square', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        file: file,
+                        rank: rank
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Select result:', result);
+                
+                if (result.success) {
+                    gameState = result.game_state;
+                    updateDisplay();
+                }
+            } catch (error) {
+                console.error('Select square error:', error);
+            }
+        }
+
+        async function newGame() {
+            const response = await fetch('/api/new_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                gameState = result.game_state;
+                updateDisplay();
+                closeModal();
+            }
+        }
+
+        async function undoMove() {
+            const response = await fetch('/api/undo_move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                gameState = result.game_state;
+                updateDisplay();
+            }
+        }
+
+        async function setGameMode(mode) {
+            const response = await fetch('/api/set_game_mode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    mode: mode
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                gameState = result.game_state;
+                updateDisplay();
+            }
+        }
+
+        async function updateEngineSettings() {
+            const timeLimit = document.getElementById('time-limit').value;
+            const level = document.getElementById('engine-level').value;
+            
+            await fetch('/api/set_engine_settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    time_limit: timeLimit,
+                    level: level
+                })
+            });
+        }
+
+        async function toggleEngineBattle() {
+            const response = await fetch('/api/toggle_engine_battle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                gameState = result.game_state;
+                updateDisplay();
+            } else if (result.error) {
+                alert('Error: ' + result.error);
+            }
+        }
+
+        async function saveGame() {
+            try {
+                const response = await fetch('/api/save_game');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `chess_game_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.pgn`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    alert('Failed to save game');
+                }
+            } catch (error) {
+                alert('Error saving game: ' + error.message);
+            }
+        }
+
+        async function loadGame(input) {
+            if (input.files.length === 0) return;
+            
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+            
+            try {
+                const response = await fetch('/api/load_game', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    gameState = result.game_state;
+                    updateDisplay();
+                    alert('Game loaded successfully!');
+                } else {
+                    alert('Error loading game: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error loading game: ' + error.message);
+            }
+            
+            // Reset the file input
+            input.value = '';
+        }
+
+        function showGameOverModal() {
+            const modal = document.getElementById('gameOverModal');
+            const title = document.getElementById('gameOverTitle');
+            const message = document.getElementById('gameOverMessage');
+            
+            title.textContent = 'Game Over! 🎉';
+            
+            if (gameState.result === '1-0') {
+                message.textContent = 'White wins!';
+            } else if (gameState.result === '0-1') {
+                message.textContent = 'Black wins!';
+            } else if (gameState.result === '1/2-1/2') {
+                message.textContent = 'It\'s a draw!';
+            } else {
+                message.textContent = 'Game finished: ' + gameState.result;
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('gameOverModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('gameOverModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
