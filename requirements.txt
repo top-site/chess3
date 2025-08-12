@@ -1,0 +1,209 @@
+# Flask Chess GUI - Requirements
+# Core Dependencies
+Flask==3.0.0
+python-chess==1.999
+
+# Flask Dependencies (auto-installed with Flask but listed for clarity)
+Werkzeug==3.0.1
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+itsdangerous==2.1.2
+click==8.1.7
+
+# Standard Library Modules (built-in, no installation needed)
+# threading - for non-blocking engine operations
+# time - for timing controls and delays
+# json - for API request/response handling
+# os - for environment variable and file path operations
+# uuid - for session management
+# tempfile - for temporary file handling
+# logging - for application logging
+# subprocess - for engine process management
+
+# Development and Production Tools (optional)
+# Uncomment for production deployment
+# gunicorn==21.2.0
+# waitress==2.1.2
+# uWSGI==2.0.23
+
+# Environment Management (optional)
+# Uncomment for environment variable management
+# python-dotenv==1.0.0
+
+# Testing Dependencies (optional)
+# Uncomment if you want to run tests
+# pytest==7.4.3
+# pytest-flask==1.3.0
+# pytest-cov==4.1.0
+# selenium==4.15.0        # For web interface testing
+
+# Code Quality Tools (optional)
+# Uncomment for development
+# black==23.11.0
+# flake8==6.1.0
+# mypy==1.7.1
+# pre-commit==3.6.0
+
+# Documentation Tools (optional)
+# Uncomment for generating documentation
+# sphinx==7.2.6
+# sphinx-rtd-theme==1.3.0
+# flask-swagger-ui==4.11.1
+
+# Development Tools (optional)
+# Uncomment for development convenience
+# flask-debugtoolbar==0.13.1
+# watchdog==3.0.0         # For auto-reloading
+
+# Performance Monitoring (optional)
+# Uncomment for production monitoring
+# psutil==5.9.6
+# flask-profiler==1.8.1
+
+# Additional Web Features (optional)
+# Uncomment for enhanced web functionality
+# requests==2.31.0        # For external API calls
+# websockets==12.0        # For real-time multiplayer
+
+# Security Enhancements (optional)
+# Uncomment for enhanced security
+# flask-limiter==3.5.0    # Rate limiting
+# flask-cors==4.0.0       # CORS handling
+
+# ===================================================================
+# CHESS ENGINE REQUIREMENTS (EXTERNAL INSTALLATIONS)
+# ===================================================================
+# You must install Stockfish chess engine separately for AI gameplay:
+#
+# RECOMMENDED ENGINE:
+# Stockfish (Free, Open Source, World's Strongest Engine)
+#
+# INSTALLATION BY PLATFORM:
+#
+# Windows:
+#   - Download from: https://stockfishchess.org/download/
+#   - Or using Chocolatey: choco install stockfish
+#   - Or using Scoop: scoop install stockfish
+#
+# macOS:
+#   - Using Homebrew: brew install stockfish
+#   - Using MacPorts: sudo port install stockfish
+#
+# Linux (Ubuntu/Debian):
+#   - sudo apt-get update
+#   - sudo apt-get install stockfish
+#
+# Linux (CentOS/RHEL/Fedora):
+#   - sudo yum install stockfish (CentOS/RHEL)
+#   - sudo dnf install stockfish (Fedora)
+#
+# Linux (Arch):
+#   - sudo pacman -S stockfish
+#
+# ALTERNATIVE ENGINES (Optional):
+# Any UCI-compatible engine will work:
+# - Komodo (Commercial): https://komodochess.com/
+# - Leela Chess Zero (Neural Network): https://lczero.org/
+# - Dragon (Commercial): https://shop.komododragon.com/
+#
+# ENGINE AUTO-DETECTION:
+# The Flask app automatically searches for Stockfish in these locations:
+# - System PATH
+# - stockfish.exe (Windows)
+# - /usr/local/bin/stockfish
+# - /usr/bin/stockfish
+# - /opt/homebrew/bin/stockfish (macOS Homebrew)
+
+# ===================================================================
+# SYSTEM REQUIREMENTS
+# ===================================================================
+# - Python 3.7 or higher
+# - Operating System: Windows 10+, macOS 10.14+, or Linux
+# - Memory: Minimum 1GB RAM (2GB+ recommended for engine battles)
+# - Disk Space: ~100MB for application + dependencies + engine
+# - Web Browser: Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
+# - Network: Local network access for web interface (localhost:5000)
+
+# ===================================================================
+# INSTALLATION INSTRUCTIONS
+# ===================================================================
+# 1. Clone the repository:
+#    git clone <your-repository-url>
+#    cd flask-chess-gui
+#
+# 2. Create virtual environment (recommended):
+#    python -m venv venv
+#    source venv/bin/activate  # Linux/macOS
+#    venv\Scripts\activate     # Windows
+#
+# 3. Install Python dependencies:
+#    pip install -r requirements.txt
+#
+# 4. Install Stockfish engine (see ENGINE REQUIREMENTS above)
+#
+# 5. Optional - Create .env file for configuration:
+#    SECRET_KEY=your-secret-key-here
+#    FLASK_ENV=development
+#
+# 6. Run the application:
+#    python app.py
+#
+# 7. Open web browser and navigate to:
+#    http://localhost:5000
+
+# ===================================================================
+# DEPLOYMENT CONFIGURATIONS
+# ===================================================================
+# For Production Deployment:
+# - Uncomment gunicorn or waitress above
+# - Set FLASK_ENV=production in environment
+# - Use a proper secret key (not the default)
+# - Consider using a reverse proxy (nginx, Apache)
+#
+# For Docker Deployment:
+# - Ensure Stockfish is included in container
+# - Expose port 5000
+# - Set appropriate environment variables
+#
+# For Heroku Deployment:
+# - Add Stockfish buildpack
+# - Configure Procfile with web server
+# - Set environment variables in Heroku dashboard
+
+# ===================================================================
+# TROUBLESHOOTING
+# ===================================================================
+# If you encounter issues:
+#
+# 1. Engine Not Found:
+#    - Verify Stockfish installation: `stockfish` in terminal
+#    - Check application logs for engine detection errors
+#    - Ensure engine has execute permissions on Unix systems
+#
+# 2. Port Already in Use:
+#    - Change port in app.py: app.run(port=5001)
+#    - Kill existing Flask processes
+#
+# 3. Permission Errors:
+#    - Run with appropriate user permissions
+#    - Check file system permissions for temp directories
+#
+# 4. Browser Compatibility:
+#    - Update to supported browser version
+#    - Enable JavaScript
+#    - Clear browser cache and cookies
+
+# ===================================================================
+# OPTIONAL ENHANCEMENTS
+# ===================================================================
+# If you want to add additional features, consider these packages:
+# - redis==5.0.1           # For session storage and caching
+# - celery==5.3.4          # For background task processing
+# - flask-sqlalchemy==3.1.1 # For database integration
+# - flask-migrate==4.0.5   # For database migrations
+# - flask-login==0.6.3     # For user authentication
+# - flask-mail==0.9.1      # For email notifications
+# - pillow==10.1.0         # For custom piece images
+# - python-chess[engine]   # Additional engine wrappers
+# - stockfish==3.28.0      # Python Stockfish wrapper (alternative to direct UCI)
+# - chess-com==2.0.0       # Chess.com API integration
