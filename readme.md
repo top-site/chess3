@@ -50,7 +50,7 @@ A feature-rich web-based chess application built with Flask and JavaScript that 
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/top-site/chess3
-   cd flask-chess-gui
+   cd chess3
    ```
 
 2. **Install Python dependencies**:
